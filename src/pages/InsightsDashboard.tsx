@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { latestGlucose } from '@/lib/mockData';
 import AiBadge from '@/components/AiBadge';
 import MissingDataBanner from '@/components/MissingDataBanner';
+import TimeInRangeChart from '@/components/TimeInRangeChart';
 
 const trendIcons: Record<string, React.ReactNode> = {
   rising: <TrendingUp size={18} />,
@@ -14,10 +15,10 @@ const trendIcons: Record<string, React.ReactNode> = {
 };
 
 const cards = [
-  { key: 'carb-ratio', title: 'Carb Ratio', icon: Scale, subtitle: 'Efficacité insuline par repas', badge: '3 anomalies détectées', badgeColor: 'text-accent-low bg-accent-low/10', needsCgm: true, needsMeals: true },
-  { key: 'sport', title: 'Sport Impact', icon: Zap, subtitle: 'Glycémie pendant & après activité', badge: 'Bonne stabilité', badgeColor: 'text-accent-good bg-accent-good/10', needsCgm: true, needsSport: true },
-  { key: 'nightly', title: 'Nightly Patterns', icon: Moon, subtitle: 'Tendances glycémiques nocturnes', badge: '2 hypos détectées', badgeColor: 'text-accent-high bg-accent-high/10', needsCgm: true },
-  { key: 'basal', title: 'Basal Analysis', icon: Activity, subtitle: 'Efficacité insuline basale', badge: 'Stable', badgeColor: 'text-accent-good bg-accent-good/10', needsCgm: true },
+  { key: 'carb-ratio', title: 'Ratio glucidique', icon: Scale, subtitle: 'Efficacité insuline par repas', badge: '3 anomalies détectées', badgeColor: 'text-accent-low bg-accent-low/10', needsCgm: true, needsMeals: true },
+  { key: 'sport', title: 'Impact sport', icon: Zap, subtitle: 'Glycémie pendant & après activité', badge: 'Bonne stabilité', badgeColor: 'text-accent-good bg-accent-good/10', needsCgm: true, needsSport: true },
+  { key: 'nightly', title: 'Profils nocturnes', icon: Moon, subtitle: 'Tendances glycémiques nocturnes', badge: '2 hypos détectées', badgeColor: 'text-accent-high bg-accent-high/10', needsCgm: true },
+  { key: 'basal', title: 'Analyse basale', icon: Activity, subtitle: 'Efficacité insuline basale', badge: 'Stable', badgeColor: 'text-accent-good bg-accent-good/10', needsCgm: true },
 ];
 
 const InsightsDashboard = () => {
@@ -43,8 +44,8 @@ const InsightsDashboard = () => {
   };
 
   return (
-    <div className="p-4 space-y-4 pb-8">
-      <h1 className="text-xl font-satoshi-bold tracking-tight pt-4">Insights</h1>
+    <div className="p-4 space-y-4 pb-8 overflow-y-auto">
+      <h1 className="text-xl font-satoshi-bold tracking-tight pt-4">Analyses</h1>
 
       {/* CGM banner */}
       {hasCgmData ? (
@@ -73,6 +74,9 @@ const InsightsDashboard = () => {
       >
         {syncing ? 'Synchronisation...' : 'Synchroniser Dexcom'}
       </button>
+
+      {/* Time in Range chart */}
+      <TimeInRangeChart />
 
       {/* Analysis grid */}
       <div className="grid grid-cols-2 gap-3">

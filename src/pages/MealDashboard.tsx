@@ -3,44 +3,65 @@ import { Plus } from 'lucide-react';
 import { todayMeals, type MealEntry } from '@/lib/mockData';
 import FoodSearchModal from '@/components/FoodSearchModal';
 import FoodDetailSheet from '@/components/FoodDetailSheet';
+import TimeInRangeChart from '@/components/TimeInRangeChart';
+import WeeklyMealRecap from '@/components/WeeklyMealRecap';
+import MissingDataBanner from '@/components/MissingDataBanner';
 
 const MealDashboard = () => {
   const [showSearch, setShowSearch] = useState(false);
   const [selectedFood, setSelectedFood] = useState<MealEntry | null>(null);
 
   const totalCarbs = todayMeals.reduce((sum, m) => sum + m.carbs, 0);
+  const hasCgmData = true; // simulate CGM connection status
 
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="px-4 pt-8 pb-4 text-center">
-        <p className="text-sm text-muted-foreground font-satoshi-medium mb-1">Today's Carbs</p>
+        <p className="text-sm text-muted-foreground font-satoshi-medium mb-1">Glucides aujourd'hui</p>
         <p className="text-6xl font-satoshi-black tabular-nums tracking-tight text-foreground">
           {totalCarbs}<span className="text-2xl text-muted-foreground font-satoshi-medium ml-1">g</span>
         </p>
       </div>
 
-      {/* Meal list */}
-      <div className="flex-1 px-4 space-y-2 pb-24">
-        {todayMeals.map((meal) => (
-          <button
-            key={meal.id}
-            onClick={() => setSelectedFood(meal)}
-            className="w-full flex items-center gap-3 p-3 bg-card rounded-xl border border-border transition-all duration-200 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 active:scale-[0.98] text-left"
-          >
-            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-2xl shrink-0">
-              {meal.image}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-satoshi-bold text-foreground truncate">{meal.name}</p>
-              <p className="text-xs text-muted-foreground font-satoshi-regular">{meal.quantity}g{meal.brand ? ` · ${meal.brand}` : ''}</p>
-            </div>
-            <div className="text-right shrink-0">
-              <p className="text-lg font-satoshi-bold tabular-nums text-accent-good">{meal.carbs}g</p>
-              <p className="text-xs text-muted-foreground tabular-nums">{meal.timestamp}</p>
-            </div>
-          </button>
-        ))}
+      {/* Scrollable content */}
+      <div className="flex-1 px-4 space-y-3 pb-24 overflow-y-auto">
+        {/* Time in Range chart */}
+        <TimeInRangeChart />
+
+        {/* Weekly problematic meals recap */}
+        <WeeklyMealRecap hasCgmData={hasCgmData} />
+
+        {/* Missing data warning example */}
+        {!hasCgmData && (
+          <MissingDataBanner message="Connectez votre capteur CGM pour débloquer le temps dans la cible et l'analyse des repas." />
+        )}
+
+        {/* Meal list */}
+        <div>
+          <h3 className="text-sm font-satoshi-bold text-foreground mb-2">Repas du jour</h3>
+          <div className="space-y-2">
+            {todayMeals.map((meal) => (
+              <button
+                key={meal.id}
+                onClick={() => setSelectedFood(meal)}
+                className="w-full flex items-center gap-3 p-3 bg-card rounded-xl border border-border transition-all duration-200 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 active:scale-[0.98] text-left"
+              >
+                <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center text-2xl shrink-0">
+                  {meal.image}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-satoshi-bold text-foreground truncate">{meal.name}</p>
+                  <p className="text-xs text-muted-foreground font-satoshi-regular">{meal.quantity}g{meal.brand ? ` · ${meal.brand}` : ''}</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-lg font-satoshi-bold tabular-nums text-accent-good">{meal.carbs}g</p>
+                  <p className="text-xs text-muted-foreground tabular-nums">{meal.timestamp}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* FAB */}

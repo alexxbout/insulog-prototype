@@ -3,6 +3,8 @@ import { ArrowLeft, Minus, Plus, ChevronDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { MealEntry } from '@/lib/mockData';
 import { toast } from 'sonner';
+import DoseTimingSelector, { type DoseTiming } from './DoseTimingSelector';
+import InjectionSiteSelector, { type BodyZone, type BodySide } from './InjectionSiteSelector';
 
 interface FoodDetailSheetProps {
   food: MealEntry;
@@ -21,6 +23,9 @@ const NutriscoreBadge = ({ score }: { score: string }) => {
 const FoodDetailSheet = ({ food, onClose }: FoodDetailSheetProps) => {
   const [quantity, setQuantity] = useState(food.quantity);
   const [insulinDose, setInsulinDose] = useState(food.insulinDose || 0);
+  const [doseTiming, setDoseTiming] = useState<DoseTiming | null>(null);
+  const [injectionZone, setInjectionZone] = useState<BodyZone | null>(null);
+  const [injectionSide, setInjectionSide] = useState<BodySide | null>(null);
   const [note, setNote] = useState(food.note || '');
   const [expanded, setExpanded] = useState(false);
 
@@ -130,7 +135,7 @@ const FoodDetailSheet = ({ food, onClose }: FoodDetailSheetProps) => {
 
         {/* Insulin dose */}
         <div className="space-y-2">
-          <label className="text-sm font-satoshi-medium text-muted-foreground">Insulin dose (units)</label>
+          <label className="text-sm font-satoshi-medium text-muted-foreground">Dose d'insuline (unités)</label>
           <input
             type="number"
             value={insulinDose || ''}
@@ -140,13 +145,26 @@ const FoodDetailSheet = ({ food, onClose }: FoodDetailSheetProps) => {
           />
         </div>
 
+        {/* Dose timing - only show if insulin dose > 0 */}
+        {insulinDose > 0 && (
+          <>
+            <DoseTimingSelector value={doseTiming} onChange={setDoseTiming} />
+            <InjectionSiteSelector
+              zone={injectionZone}
+              side={injectionSide}
+              onChangeZone={setInjectionZone}
+              onChangeSide={setInjectionSide}
+            />
+          </>
+        )}
+
         {/* Note */}
         <div className="space-y-2">
           <label className="text-sm font-satoshi-medium text-muted-foreground">Note</label>
           <textarea
             value={note}
             onChange={e => setNote(e.target.value)}
-            placeholder="Add a note..."
+            placeholder="Ajouter une note..."
             rows={2}
             className="w-full px-3 py-2 bg-muted rounded-lg border-2 border-transparent focus:border-primary focus:ring-4 focus:ring-primary/20 text-sm font-satoshi-medium text-foreground placeholder:text-muted-foreground outline-none transition-all resize-none"
           />
@@ -154,10 +172,10 @@ const FoodDetailSheet = ({ food, onClose }: FoodDetailSheetProps) => {
 
         {/* Add button */}
         <button
-          onClick={() => { toast.success(`${food.name} added to meal`); onClose(); }}
+          onClick={() => { toast.success(`${food.name} ajouté au repas`); onClose(); }}
           className="w-full h-12 bg-primary text-primary-foreground rounded-lg font-satoshi-bold text-sm transition-all duration-150 hover:brightness-110 active:scale-[0.98]"
         >
-          Add to meal
+          Ajouter au repas
         </button>
 
         <div className="h-4" />

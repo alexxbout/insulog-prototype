@@ -23,7 +23,7 @@ const AppShell = ({ children }: AppShellProps) => {
           }`}
         >
           <Utensils size={24} />
-          <span className="text-xs font-satoshi-medium">Meals</span>
+          <span className="text-xs font-satoshi-medium">Repas</span>
         </button>
         <button
           onClick={() => navigate('/insights')}
@@ -32,7 +32,7 @@ const AppShell = ({ children }: AppShellProps) => {
           }`}
         >
           <BarChart3 size={24} />
-          <span className="text-xs font-satoshi-medium">Insights</span>
+          <span className="text-xs font-satoshi-medium">Analyses</span>
         </button>
       </nav>
     </div>

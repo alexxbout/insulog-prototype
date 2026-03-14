@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Minus, Plus, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Minus, Plus, ChevronDown, AlertTriangle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { MealEntry } from '@/lib/mockData';
 import { toast } from 'sonner';
@@ -9,6 +9,8 @@ import InjectionSiteSelector, { type BodyZone, type BodySide } from './Injection
 interface FoodDetailSheetProps {
   food: MealEntry;
   onClose: () => void;
+  onAdd: (entry: MealEntry) => void;
+  mode?: 'add' | 'view';
 }
 
 const NutriscoreBadge = ({ score }: { score: string }) => {
@@ -20,7 +22,7 @@ const NutriscoreBadge = ({ score }: { score: string }) => {
   );
 };
 
-const FoodDetailSheet = ({ food, onClose }: FoodDetailSheetProps) => {
+const FoodDetailSheet = ({ food, onClose, onAdd, mode = 'add' }: FoodDetailSheetProps) => {
   const [quantity, setQuantity] = useState(food.quantity);
   const [insulinDose, setInsulinDose] = useState(food.insulinDose || 0);
   const [doseTiming, setDoseTiming] = useState<DoseTiming | null>(null);
@@ -28,9 +30,33 @@ const FoodDetailSheet = ({ food, onClose }: FoodDetailSheetProps) => {
   const [injectionSide, setInjectionSide] = useState<BodySide | null>(null);
   const [note, setNote] = useState(food.note || '');
   const [expanded, setExpanded] = useState(false);
+  const [quantityUncertain, setQuantityUncertain] = useState(food.quantityUncertain || false);
 
   const scale = quantity / food.quantity;
   const scaled = (val: number) => Math.round(val * scale * 10) / 10;
+
+  const handleAdd = () => {
+    const entry: MealEntry = {
+      ...food,
+      quantity,
+      carbs: scaled(food.carbs),
+      protein: scaled(food.protein),
+      fat: scaled(food.fat),
+      calories: scaled(food.calories),
+      sugars: scaled(food.sugars),
+      fiber: food.fiber ? scaled(food.fiber) : undefined,
+      sodium: food.sodium ? scaled(food.sodium) : undefined,
+      insulinDose: insulinDose || undefined,
+      doseTiming: doseTiming || undefined,
+      injectionZone: injectionZone || undefined,
+      injectionSide: injectionSide || undefined,
+      note: note || undefined,
+      quantityUncertain,
+      timestamp: new Date().toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit', hour12: false }),
+    };
+    onAdd(entry);
+    toast.success(`${food.name} ajouté au repas`);
+  };
 
   return (
     <motion.div
@@ -40,7 +66,6 @@ const FoodDetailSheet = ({ food, onClose }: FoodDetailSheetProps) => {
       transition={{ duration: 0.25, ease: [0.3, 0, 0.5, 1] }}
       className="absolute inset-0 bg-background z-50 flex flex-col overflow-y-auto"
     >
-      {/* Food image area */}
       <div className="h-48 bg-muted flex items-center justify-center text-7xl relative">
         {food.image}
         <button
@@ -52,7 +77,6 @@ const FoodDetailSheet = ({ food, onClose }: FoodDetailSheetProps) => {
       </div>
 
       <div className="p-4 space-y-4">
-        {/* Title */}
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-xl font-satoshi-bold tracking-tight">{food.name}</h1>
@@ -62,46 +86,61 @@ const FoodDetailSheet = ({ food, onClose }: FoodDetailSheetProps) => {
         </div>
 
         {/* Quantity selector */}
-        <div className="flex items-center gap-3 justify-center p-3 bg-card rounded-xl border border-border">
-          <button
-            onClick={() => setQuantity(Math.max(5, quantity - 5))}
-            className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center transition-all active:scale-95"
-          >
-            <Minus size={18} />
-          </button>
-          <div className="text-center min-w-[80px]">
-            <input
-              type="number"
-              value={quantity}
-              onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 0))}
-              className="w-20 text-center text-2xl font-satoshi-bold tabular-nums bg-transparent outline-none text-foreground"
-            />
-            <p className="text-xs text-muted-foreground">grams</p>
+        <div className="space-y-2">
+          <div className="flex items-center gap-3 justify-center p-3 bg-card rounded-xl border border-border">
+            <button
+              onClick={() => setQuantity(Math.max(5, quantity - 5))}
+              className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center transition-all active:scale-95"
+            >
+              <Minus size={18} />
+            </button>
+            <div className="text-center min-w-[80px]">
+              <input
+                type="number"
+                value={quantity}
+                onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 0))}
+                className="w-20 text-center text-2xl font-satoshi-bold tabular-nums bg-transparent outline-none text-foreground"
+              />
+              <p className="text-xs text-muted-foreground">grammes</p>
+            </div>
+            <button
+              onClick={() => setQuantity(quantity + 5)}
+              className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center transition-all active:scale-95"
+            >
+              <Plus size={18} />
+            </button>
           </div>
+          {/* Quantity uncertainty toggle */}
           <button
-            onClick={() => setQuantity(quantity + 5)}
-            className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center transition-all active:scale-95"
+            type="button"
+            onClick={() => setQuantityUncertain(!quantityUncertain)}
+            className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-satoshi-medium transition-all ${
+              quantityUncertain
+                ? 'bg-accent-low/10 text-accent-low border border-accent-low/30'
+                : 'bg-muted text-muted-foreground'
+            }`}
           >
-            <Plus size={18} />
+            <AlertTriangle size={14} />
+            {quantityUncertain ? 'Quantité approximative (doute signalé)' : 'Je ne suis pas sûr de la quantité'}
           </button>
         </div>
 
         {/* Nutrition card */}
         <div className="bg-card rounded-xl border border-border p-4 space-y-3">
           <div className="text-center pb-3 border-b border-border">
-            <p className="text-xs text-muted-foreground mb-1">Carbohydrates</p>
+            <p className="text-xs text-muted-foreground mb-1">Glucides</p>
             <p className="text-3xl font-satoshi-black tabular-nums text-accent-good">
               {scaled(food.carbs)}<span className="text-lg ml-0.5">g</span>
             </p>
-            <p className="text-xs text-muted-foreground mt-1">of which sugars: {scaled(food.sugars)}g</p>
+            <p className="text-xs text-muted-foreground mt-1">dont sucres : {scaled(food.sugars)}g</p>
           </div>
           <div className="grid grid-cols-3 gap-3 text-center">
             <div>
-              <p className="text-xs text-muted-foreground mb-0.5">Protein</p>
+              <p className="text-xs text-muted-foreground mb-0.5">Protéines</p>
               <p className="text-lg font-satoshi-bold tabular-nums">{scaled(food.protein)}g</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground mb-0.5">Fat</p>
+              <p className="text-xs text-muted-foreground mb-0.5">Lipides</p>
               <p className="text-lg font-satoshi-bold tabular-nums">{scaled(food.fat)}g</p>
             </div>
             <div>
@@ -116,13 +155,13 @@ const FoodDetailSheet = ({ food, onClose }: FoodDetailSheetProps) => {
           onClick={() => setExpanded(!expanded)}
           className="w-full flex items-center justify-between p-3 bg-card rounded-xl border border-border text-sm font-satoshi-medium"
         >
-          More nutritional info
+          Plus d'infos nutritionnelles
           <ChevronDown size={18} className={`text-muted-foreground transition-transform ${expanded ? 'rotate-180' : ''}`} />
         </button>
         {expanded && (
           <div className="bg-card rounded-xl border border-border p-4 space-y-2">
             {[
-              ['Fiber', food.fiber],
+              ['Fibres', food.fiber],
               ['Sodium', food.sodium],
             ].filter(([, v]) => v != null).map(([label, val]) => (
               <div key={label as string} className="flex justify-between text-sm">
@@ -145,7 +184,6 @@ const FoodDetailSheet = ({ food, onClose }: FoodDetailSheetProps) => {
           />
         </div>
 
-        {/* Dose timing - only show if insulin dose > 0 */}
         {insulinDose > 0 && (
           <>
             <DoseTimingSelector value={doseTiming} onChange={setDoseTiming} />
@@ -170,13 +208,14 @@ const FoodDetailSheet = ({ food, onClose }: FoodDetailSheetProps) => {
           />
         </div>
 
-        {/* Add button */}
-        <button
-          onClick={() => { toast.success(`${food.name} ajouté au repas`); onClose(); }}
-          className="w-full h-12 bg-primary text-primary-foreground rounded-lg font-satoshi-bold text-sm transition-all duration-150 hover:brightness-110 active:scale-[0.98]"
-        >
-          Ajouter au repas
-        </button>
+        {mode === 'add' && (
+          <button
+            onClick={handleAdd}
+            className="w-full h-12 bg-primary text-primary-foreground rounded-lg font-satoshi-bold text-sm transition-all duration-150 hover:brightness-110 active:scale-[0.98]"
+          >
+            Ajouter au repas
+          </button>
+        )}
 
         <div className="h-4" />
       </div>

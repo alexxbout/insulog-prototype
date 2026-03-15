@@ -1,21 +1,30 @@
-import { useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { sportSessions } from '@/lib/mockData';
+import { ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 
-const filters = ['All', 'Cardio', 'Strength', 'Other'] as const;
+const filters = ['Tous', 'Cardio', 'Musculation', 'Autre'] as const;
+
+const filterToType: Record<string, string> = {
+  'Tous': 'All',
+  'Cardio': 'Cardio',
+  'Musculation': 'Strength',
+  'Autre': 'Other',
+};
 
 const SportDetail = () => {
   const navigate = useNavigate();
-  const [filter, setFilter] = useState<string>('All');
+  const [filter, setFilter] = useState<string>('Tous');
 
-  const filtered = filter === 'All' ? sportSessions : sportSessions.filter(s => s.type === filter);
+  const filtered = filter === 'Tous' ? sportSessions : sportSessions.filter(s => s.type === filterToType[filter]);
+
+  const typeLabels: Record<string, string> = { Cardio: 'Cardio', Strength: 'Musculation', Other: 'Autre' };
 
   const avgByType = ['Cardio', 'Strength', 'Other'].map(type => {
     const sessions = sportSessions.filter(s => s.type === type);
     const avg = sessions.length ? Math.round(sessions.reduce((s, ss) => s + ss.glucoseDelta, 0) / sessions.length) : 0;
-    return { type, avg, count: sessions.length };
+    return { type, label: typeLabels[type], avg, count: sessions.length };
   });
 
   return (
@@ -24,7 +33,7 @@ const SportDetail = () => {
         <button onClick={() => navigate('/insights')} className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-xl font-satoshi-bold tracking-tight">Sport & Glucose</h1>
+        <h1 className="text-xl font-satoshi-bold tracking-tight">Sport & Glycémie</h1>
       </div>
 
       {/* Filter pills */}
@@ -67,11 +76,11 @@ const SportDetail = () => {
 
       {/* Summary */}
       <div className="bg-card rounded-xl border border-border p-4">
-        <p className="text-sm font-satoshi-bold mb-3">Average Glucose Drop</p>
+        <p className="text-sm font-satoshi-bold mb-3">Variation glycémique moyenne</p>
         <div className="space-y-2">
           {avgByType.map(a => (
             <div key={a.type} className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">{a.type} ({a.count} sessions)</span>
+              <span className="text-muted-foreground">{a.label} ({a.count} séances)</span>
               <span className={`font-satoshi-bold tabular-nums ${a.avg < 0 ? 'text-accent-good' : 'text-accent-low'}`}>
                 {a.avg > 0 ? '+' : ''}{a.avg} mg/dL
               </span>

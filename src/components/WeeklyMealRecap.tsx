@@ -1,22 +1,71 @@
-import { TrendingUp, AlertTriangle } from 'lucide-react';
+import { TrendingUp } from 'lucide-react';
 import AiBadge from './AiBadge';
 import MissingDataBanner from './MissingDataBanner';
 
-interface ProblematicMeal {
-  id: string;
+interface ProblematicMealEntry {
   name: string;
   image: string;
-  timestamp: string;
+  quantity: number;
   carbs: number;
+}
+
+interface ProblematicMeal {
+  id: string;
+  label: string;
+  timestamp: string;
+  entries: ProblematicMealEntry[];
+  totalCarbs: number;
+  insulinDose: number;
   glucosePeak: number;
-  timeToReturn: number; // minutes to return in range
+  timeToReturn: number;
   issue: string;
 }
 
 const problematicMeals: ProblematicMeal[] = [
-  { id: 'pm1', name: 'Pasta Bolognese', image: '🍝', timestamp: 'Lun 12:45', carbs: 58, glucosePeak: 245, timeToReturn: 180, issue: 'Pic glycémique > 240 mg/dL' },
-  { id: 'pm2', name: 'White Rice', image: '🍚', timestamp: 'Mar 19:20', carbs: 72, glucosePeak: 220, timeToReturn: 150, issue: 'Retour en cible > 2h30' },
-  { id: 'pm3', name: 'Orange Juice', image: '🧃', timestamp: 'Jeu 08:10', carbs: 26, glucosePeak: 198, timeToReturn: 90, issue: 'Montée rapide (+80 en 20 min)' },
+  {
+    id: 'pm1',
+    label: 'Déjeuner',
+    timestamp: 'Lun 12:45',
+    entries: [
+      { name: 'Pâtes bolognaise', image: '🍝', quantity: 320, carbs: 58 },
+      { name: 'Pain', image: '🍞', quantity: 40, carbs: 18 },
+      { name: 'Compote', image: '🍎', quantity: 100, carbs: 16 },
+    ],
+    totalCarbs: 92,
+    insulinDose: 5,
+    glucosePeak: 245,
+    timeToReturn: 180,
+    issue: 'Pic > 240 mg/dL — dose insuffisante pour 92g de glucides',
+  },
+  {
+    id: 'pm2',
+    label: 'Dîner',
+    timestamp: 'Mar 19:20',
+    entries: [
+      { name: 'Riz blanc', image: '🍚', quantity: 250, carbs: 72 },
+      { name: 'Poulet', image: '🍗', quantity: 150, carbs: 0 },
+    ],
+    totalCarbs: 72,
+    insulinDose: 4,
+    glucosePeak: 220,
+    timeToReturn: 150,
+    issue: 'Retour en cible > 2h30 — injection trop tardive ?',
+  },
+  {
+    id: 'pm3',
+    label: 'Petit-déjeuner',
+    timestamp: 'Jeu 08:10',
+    entries: [
+      { name: 'Jus d\'orange', image: '🧃', quantity: 250, carbs: 26 },
+      { name: 'Céréales', image: '🥣', quantity: 60, carbs: 40 },
+      { name: 'Lait', image: '🥛', quantity: 200, carbs: 10 },
+    ],
+    totalCarbs: 76,
+    insulinDose: 6,
+    glucosePeak: 198,
+    timeToReturn: 90,
+    issue: 'Montée rapide (+80 en 20 min) — sucres rapides à jeun',
+  },
 ];
 
 interface WeeklyMealRecapProps {
@@ -40,25 +89,37 @@ const WeeklyMealRecap = ({ hasCgmData = true }: WeeklyMealRecapProps) => {
         <AiBadge label="Analyse IA" />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {problematicMeals.map(meal => (
-          <div key={meal.id} className="flex items-center gap-3 p-2.5 rounded-lg bg-accent-high/5 border border-accent-high/20">
-            <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center text-lg shrink-0">
-              {meal.image}
-            </div>
-            <div className="flex-1 min-w-0">
+          <div key={meal.id} className="rounded-xl bg-accent-high/5 border border-accent-high/20 p-3 space-y-2">
+            {/* Meal header */}
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <p className="text-sm font-satoshi-bold text-foreground truncate">{meal.name}</p>
+                <p className="text-sm font-satoshi-bold text-foreground">{meal.label}</p>
                 <span className="text-[10px] text-muted-foreground font-satoshi-medium">{meal.timestamp}</span>
               </div>
-              <div className="flex items-center gap-1 mt-0.5">
-                <TrendingUp size={12} className="text-accent-high" />
-                <p className="text-[11px] text-accent-high font-satoshi-medium">{meal.issue}</p>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-satoshi-bold tabular-nums text-accent-high">{meal.glucosePeak} mg/dL</span>
               </div>
             </div>
-            <div className="text-right shrink-0">
-              <p className="text-sm font-satoshi-bold tabular-nums text-accent-high">{meal.glucosePeak}</p>
-              <p className="text-[10px] text-muted-foreground">mg/dL pic</p>
+
+            {/* Entries list */}
+            <div className="flex flex-wrap gap-1.5">
+              {meal.entries.map((entry, i) => (
+                <span key={i} className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-muted/50 rounded-md px-2 py-1">
+                  <span>{entry.image}</span>
+                  <span>{entry.name}</span>
+                  <span className="text-accent-good tabular-nums">{entry.carbs}g</span>
+                </span>
+              ))}
+            </div>
+
+            {/* Dose + issue */}
+            <div className="flex items-start gap-1.5">
+              <TrendingUp size={12} className="text-accent-high mt-0.5 shrink-0" />
+              <p className="text-[11px] text-accent-high font-satoshi-medium leading-tight">
+                {meal.insulinDose}u pour {meal.totalCarbs}g — {meal.issue}
+              </p>
             </div>
           </div>
         ))}

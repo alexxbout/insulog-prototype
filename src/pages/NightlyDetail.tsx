@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Area, AreaChart, ResponsiveContainer, Tooltip } from 'recharts';
 import { nightlyData } from '@/lib/mockData';
+import { ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Area, AreaChart, CartesianGrid, Line, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 
 const ranges = [
-  { label: '7 nights', value: 7 },
-  { label: '14 nights', value: 14 },
+  { label: '7 nuits', value: 7 },
+  { label: '14 nuits', value: 14 },
 ] as const;
 
 const NightlyDetail = () => {
@@ -33,7 +33,7 @@ const NightlyDetail = () => {
         <button onClick={() => navigate('/insights')} className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-xl font-satoshi-bold tracking-tight">Nocturnal Patterns</h1>
+        <h1 className="text-xl font-satoshi-bold tracking-tight">Profils nocturnes</h1>
       </div>
 
       {/* Range selector */}
@@ -53,7 +53,7 @@ const NightlyDetail = () => {
 
       {/* Heatmap */}
       <div className="bg-card rounded-xl border border-border p-4">
-        <p className="text-sm font-satoshi-bold mb-3">Glucose Heatmap (00h–08h)</p>
+        <p className="text-sm font-satoshi-bold mb-3">Heatmap glycémique (00h–08h)</p>
         <div className="space-y-1">
           {data.map(night => (
             <div key={night.date} className="flex items-center gap-2">
@@ -79,7 +79,7 @@ const NightlyDetail = () => {
 
       {/* Average curve */}
       <div className="bg-card rounded-xl border border-border p-4">
-        <p className="text-sm font-satoshi-bold mb-3">Average Nocturnal Glucose</p>
+        <p className="text-sm font-satoshi-bold mb-3">Glycémie nocturne moyenne</p>
         <ResponsiveContainer width="100%" height={180}>
           <AreaChart data={avgCurve}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -95,7 +95,7 @@ const NightlyDetail = () => {
       {/* Events */}
       {allEvents.length > 0 && (
         <div className="bg-card rounded-xl border border-border p-4">
-          <p className="text-sm font-satoshi-bold mb-3">Detected Events</p>
+          <p className="text-sm font-satoshi-bold mb-3">Événements détectés</p>
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {allEvents.slice(0, 10).map((e, i) => (
               <div key={i} className="flex items-center justify-between text-sm">

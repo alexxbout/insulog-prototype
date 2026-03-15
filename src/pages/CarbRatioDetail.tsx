@@ -1,7 +1,7 @@
+import { carbRatioScatter, postMealGlucose } from '@/lib/mockData';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Area, AreaChart, ScatterChart, Scatter, ResponsiveContainer, ZAxis } from 'recharts';
-import { postMealGlucose, carbRatioScatter } from '@/lib/mockData';
+import { Area, AreaChart, CartesianGrid, Line, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from 'recharts';
 
 const CustomTooltip = ({ active, payload }: any) => {
   if (!active || !payload?.length) return null;
@@ -26,15 +26,15 @@ const CarbRatioDetail = () => {
         <button onClick={() => navigate('/insights')} className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-xl font-satoshi-bold tracking-tight">Carb Ratio Analysis</h1>
+        <h1 className="text-xl font-satoshi-bold tracking-tight">Ratio glucidique</h1>
       </div>
 
       {/* Summary stats */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Avg Ratio', value: '1:12g' },
-          { label: 'Meals Analyzed', value: '47' },
-          { label: 'In Target', value: '72%' },
+          { label: 'Ratio moyen', value: '1:12g' },
+          { label: 'Repas analysés', value: '47' },
+          { label: 'Dans la cible', value: '72%' },
         ].map(s => (
           <div key={s.label} className="bg-card rounded-xl border border-border p-3 text-center">
             <p className="text-xs text-muted-foreground mb-1">{s.label}</p>
@@ -45,7 +45,7 @@ const CarbRatioDetail = () => {
 
       {/* Post-meal glucose curve */}
       <div className="bg-card rounded-xl border border-border p-4">
-        <p className="text-sm font-satoshi-bold mb-3">Post-Meal Glucose (3h)</p>
+        <p className="text-sm font-satoshi-bold mb-3">Glycémie post-repas (3h)</p>
         <ResponsiveContainer width="100%" height={200}>
           <AreaChart data={postMealGlucose}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -61,7 +61,7 @@ const CarbRatioDetail = () => {
 
       {/* Scatter plot */}
       <div className="bg-card rounded-xl border border-border p-4">
-        <p className="text-sm font-satoshi-bold mb-3">Carbs vs Glucose Delta (+2h)</p>
+        <p className="text-sm font-satoshi-bold mb-3">Glucides vs Delta glycémique (+2h)</p>
         <ResponsiveContainer width="100%" height={200}>
           <ScatterChart>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -69,20 +69,20 @@ const CarbRatioDetail = () => {
             <YAxis dataKey="delta" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} name="Δ Glucose" />
             <ZAxis range={[40, 40]} />
             <Tooltip content={<CustomTooltip />} />
-            <Scatter data={carbRatioScatter.filter(d => !d.sport)} fill="hsl(var(--primary))" name="No sport" />
-            <Scatter data={carbRatioScatter.filter(d => d.sport)} fill="hsl(var(--accent-good))" name="Post-sport" />
+            <Scatter data={carbRatioScatter.filter(d => !d.sport)} fill="hsl(var(--primary))" name="Sans sport" />
+            <Scatter data={carbRatioScatter.filter(d => d.sport)} fill="hsl(var(--accent-good))" name="Après sport" />
           </ScatterChart>
         </ResponsiveContainer>
         <div className="flex gap-4 mt-2 justify-center">
-          <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-2 h-2 rounded-full bg-primary" />No sport</span>
-          <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-2 h-2 rounded-full bg-accent-good" />Post-sport</span>
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-2 h-2 rounded-full bg-primary" />Sans sport</span>
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground"><span className="w-2 h-2 rounded-full bg-accent-good" />Après sport</span>
         </div>
       </div>
 
       {/* Insight */}
       <div className="bg-card rounded-xl border border-border p-4">
         <p className="text-sm font-satoshi-medium text-muted-foreground leading-relaxed">
-          Your ratio appears less effective within 4h after cardio activity. Consider adjusting your carb ratio from 1:12 to 1:15 for post-exercise meals.
+          Votre ratio semble moins efficace dans les 4h suivant une activité cardio. Envisagez d'ajuster votre ratio de 1:12 à 1:15 pour les repas post-exercice.
         </p>
       </div>
     </div>

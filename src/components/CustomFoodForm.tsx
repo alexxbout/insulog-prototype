@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
 import type { CustomFood } from '@/lib/mockData';
+import { AlertTriangle, ArrowLeft, HelpCircle } from 'lucide-react';
+import { useState } from 'react';
 
 interface CustomFoodFormProps {
   onSave: (food: CustomFood) => void;
@@ -19,6 +19,7 @@ const CustomFoodForm = ({ onSave, onCancel }: CustomFoodFormProps) => {
   const [fat, setFat] = useState(0);
   const [calories, setCalories] = useState(0);
   const [sugars, setSugars] = useState(0);
+  const [carbsUncertain, setCarbsUncertain] = useState(false);
 
   const handleSave = () => {
     if (!name.trim()) return;
@@ -33,6 +34,7 @@ const CustomFoodForm = ({ onSave, onCancel }: CustomFoodFormProps) => {
       calories,
       sugars,
       image,
+      carbsUncertain,
     });
   };
 
@@ -106,6 +108,39 @@ const CustomFoodForm = ({ onSave, onCancel }: CustomFoodFormProps) => {
           <p className="text-sm font-satoshi-bold">Valeurs nutritionnelles (pour 100g)</p>
           {field('Glucides', carbs, setCarbs, 'g')}
           {field('dont sucres', sugars, setSugars, 'g')}
+
+          {/* Carbs uncertain toggle */}
+          <button
+            type="button"
+            onClick={() => setCarbsUncertain(!carbsUncertain)}
+            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-all ${
+              carbsUncertain
+                ? 'bg-accent-low/10 border border-accent-low/30'
+                : 'bg-muted border border-transparent'
+            }`}
+          >
+            {carbsUncertain ? (
+              <AlertTriangle size={16} className="text-accent-low shrink-0" />
+            ) : (
+              <HelpCircle size={16} className="text-muted-foreground shrink-0" />
+            )}
+            <div className="flex-1 min-w-0">
+              <p className={`text-xs font-satoshi-bold ${carbsUncertain ? 'text-accent-low' : 'text-muted-foreground'}`}>
+                Glucides approximatifs
+              </p>
+              <p className="text-[11px] text-muted-foreground leading-tight">
+                {carbsUncertain ? 'La valeur sera signalée comme une estimation' : 'Cocher si la teneur en glucides est incertaine'}
+              </p>
+            </div>
+            <div className={`w-9 h-5 rounded-full transition-colors duration-200 relative ${
+              carbsUncertain ? 'bg-accent-low' : 'bg-muted-foreground/30'
+            }`}>
+              <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform duration-200 ${
+                carbsUncertain ? 'translate-x-4' : 'translate-x-0.5'
+              }`} />
+            </div>
+          </button>
+
           {field('Protéines', protein, setProtein, 'g')}
           {field('Lipides', fat, setFat, 'g')}
           {field('Calories', calories, setCalories, '')}

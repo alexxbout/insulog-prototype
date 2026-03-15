@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Check } from 'lucide-react';
+import { getLastInjections } from '@/lib/mockData';
+import { AlertTriangle, Check } from 'lucide-react';
 
 export type BodyZone = 'thigh' | 'arm' | 'belly' | 'buttock';
 export type BodySide = 'left' | 'center' | 'right';
@@ -24,10 +24,34 @@ const sides: { key: BodySide; label: string }[] = [
   { key: 'right', label: 'Droite' },
 ];
 
+const zoneLabels: Record<string, string> = { belly: 'Ventre', thigh: 'Cuisse', arm: 'Bras', buttock: 'Fesse' };
+const sideLabels: Record<string, string> = { left: 'gauche', center: 'centre', right: 'droite' };
+
 const InjectionSiteSelector = ({ zone, side, onChangeZone, onChangeSide }: InjectionSiteSelectorProps) => {
+  const lastInjections = getLastInjections();
+  const lastRapid = lastInjections.find(i => i.type === 'rapid');
+  const lastLong = lastInjections.find(i => i.type === 'long');
+
+  const sameAsLastRapid = zone && side && lastRapid && zone === lastRapid.zone && side === lastRapid.side;
+  const sameAsLastLong = zone && side && lastLong && zone === lastLong.zone && side === lastLong.side;
+
   return (
     <div className="space-y-3">
       <label className="text-sm font-satoshi-medium text-muted-foreground">Site d'injection</label>
+
+      {/* Last injection reminder */}
+      {lastRapid && (
+        <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
+          <span className="text-xs text-muted-foreground">
+            Dernière rapide : <span className="font-satoshi-bold text-foreground">{zoneLabels[lastRapid.zone] || lastRapid.zone} {sideLabels[lastRapid.side] || lastRapid.side}</span>
+          </span>
+          {lastLong && lastLong.zone !== lastRapid.zone && (
+            <span className="text-xs text-muted-foreground ml-auto">
+              Lente : <span className="font-satoshi-bold text-foreground">{zoneLabels[lastLong.zone] || lastLong.zone} {sideLabels[lastLong.side] || lastLong.side}</span>
+            </span>
+          )}
+        </div>
+      )}
       
       {/* Zone grid */}
       <div className="grid grid-cols-4 gap-2">
@@ -70,6 +94,18 @@ const InjectionSiteSelector = ({ zone, side, onChangeZone, onChangeSide }: Injec
               {s.label}
             </button>
           ))}
+        </div>
+      )}
+
+      {/* Same zone warning */}
+      {(sameAsLastRapid || sameAsLastLong) && (
+        <div className="flex items-center gap-2 px-3 py-2.5 bg-accent-low/10 border border-accent-low/30 rounded-lg">
+          <AlertTriangle size={14} className="text-accent-low shrink-0" />
+          <p className="text-xs font-satoshi-medium text-accent-low">
+            {sameAsLastRapid
+              ? 'Même zone que la dernière injection rapide — pensez à alterner'
+              : 'Même zone que la dernière injection lente — pensez à alterner'}
+          </p>
         </div>
       )}
     </div>

@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { X, Search, ScanBarcode, Camera, BookOpen, Plus } from 'lucide-react';
+import { searchResults, type CustomFood, type MealEntry } from '@/lib/mockData';
 import { motion } from 'framer-motion';
-import { searchResults, defaultCustomFoods, type MealEntry, type CustomFood } from '@/lib/mockData';
+import { AlertTriangle, BookOpen, Camera, Plus, ScanBarcode, Search, X } from 'lucide-react';
+import { useState } from 'react';
 import CustomFoodForm from './CustomFoodForm';
 
 type Tab = 'search' | 'my-foods' | 'barcode' | 'photo';
@@ -55,6 +55,7 @@ const FoodSearchModal = ({ onClose, onSelect, customFoods, onSaveCustomFood }: F
       image: cf.image,
       nutriscore: cf.nutriscore,
       isCustom: true,
+      carbsUncertain: cf.carbsUncertain,
     });
   };
 
@@ -183,10 +184,16 @@ const FoodSearchModal = ({ onClose, onSelect, customFoods, onSaveCustomFood }: F
                       {food.image}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-satoshi-bold text-foreground truncate">{food.name}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-satoshi-bold text-foreground truncate">{food.name}</p>
+                        <span className="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-satoshi-bold bg-primary/10 text-primary">Perso</span>
+                      </div>
                       {food.description && <p className="text-xs text-muted-foreground truncate">{food.description}</p>}
                     </div>
-                    <p className="text-sm font-satoshi-bold tabular-nums text-accent-good shrink-0">{food.carbs}g<span className="text-muted-foreground font-satoshi-regular">/100g</span></p>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {food.carbsUncertain && <AlertTriangle size={12} className="text-accent-low" />}
+                      <p className="text-sm font-satoshi-bold tabular-nums text-accent-good">{food.carbsUncertain ? '≈' : ''}{food.carbs}g<span className="text-muted-foreground font-satoshi-regular">/100g</span></p>
+                    </div>
                   </button>
                 ))}
               </div>

@@ -1,7 +1,7 @@
-import { ArrowLeft, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import { basalWindows } from '@/lib/mockData';
+import { ArrowLeft, Minus, TrendingDown, TrendingUp } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, XAxis, YAxis } from 'recharts';
 
 const driftIcons = {
   rising: <TrendingUp size={16} className="text-accent-low" />,
@@ -24,12 +24,12 @@ const BasalDetail = () => {
         <button onClick={() => navigate('/insights')} className="p-2 -ml-2 rounded-lg hover:bg-muted transition-colors">
           <ArrowLeft size={20} />
         </button>
-        <h1 className="text-xl font-satoshi-bold tracking-tight">Basal Analysis</h1>
+        <h1 className="text-xl font-satoshi-bold tracking-tight">Analyse basale</h1>
       </div>
 
       {/* Summary */}
       <div className="bg-card rounded-xl border border-border p-4">
-        <p className="text-sm font-satoshi-bold mb-3">Average Glucose Drift by Period</p>
+        <p className="text-sm font-satoshi-bold mb-3">Dérive glycémique moyenne par période</p>
         <div className="grid grid-cols-2 gap-3">
           {basalWindows.map(w => (
             <div key={w.id} className="flex items-center justify-between p-2 bg-muted rounded-lg">

@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react';
-import { Plus, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
-import { allMeals, getMealsForDate, getAvailableDates, defaultCustomFoods, type Meal, type CustomFood } from '@/lib/mockData';
 import MealBuilder from '@/components/MealBuilder';
-import WeeklyMealRecap from '@/components/WeeklyMealRecap';
 import MissingDataBanner from '@/components/MissingDataBanner';
+import WeeklyMealRecap from '@/components/WeeklyMealRecap';
+import { defaultCustomFoods, getMealsForDate, type CustomFood, type Meal } from '@/lib/mockData';
+import { AlertTriangle, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 const MealDashboard = () => {
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -86,7 +86,7 @@ const MealDashboard = () => {
         {meals.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <p className="text-sm">Aucun repas enregistré</p>
-            <p className="text-xs mt-1">Appuyez sur + pour ajouter un repas</p>
+            <p className="text-xs mt-1">Ajoutez un repas ci-dessous</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -140,15 +140,16 @@ const MealDashboard = () => {
             ))}
           </div>
         )}
-      </div>
 
-      {/* FAB */}
-      <button
-        onClick={() => setShowMealBuilder(true)}
-        className="absolute bottom-24 right-4 w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-[0_4px_12px_rgba(27,79,216,0.3),0_0_0_1px_rgba(255,255,255,0.1)] transition-all duration-150 hover:brightness-110 active:scale-[0.95]"
-      >
-        <Plus size={28} />
-      </button>
+        {/* Add meal button */}
+        <button
+          onClick={() => setShowMealBuilder(true)}
+          className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border-2 border-dashed border-border text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors"
+        >
+          <Plus size={18} />
+          <span className="text-sm font-satoshi-medium">Ajouter un repas</span>
+        </button>
+      </div>
 
       {showMealBuilder && (
         <MealBuilder

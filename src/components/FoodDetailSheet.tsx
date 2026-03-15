@@ -1,16 +1,14 @@
-import { useState } from 'react';
-import { ArrowLeft, Minus, Plus, ChevronDown, AlertTriangle } from 'lucide-react';
-import { motion } from 'framer-motion';
 import type { MealEntry } from '@/lib/mockData';
+import { motion } from 'framer-motion';
+import { AlertTriangle, ArrowLeft, ChevronDown, Minus, Plus } from 'lucide-react';
+import { useState } from 'react';
 import { toast } from 'sonner';
-import DoseTimingSelector, { type DoseTiming } from './DoseTimingSelector';
-import InjectionSiteSelector, { type BodyZone, type BodySide } from './InjectionSiteSelector';
 
 interface FoodDetailSheetProps {
   food: MealEntry;
   onClose: () => void;
   onAdd: (entry: MealEntry) => void;
-  mode?: 'add' | 'view';
+  mode?: 'add' | 'view' | 'edit';
 }
 
 const NutriscoreBadge = ({ score }: { score: string }) => {
@@ -25,13 +23,9 @@ const NutriscoreBadge = ({ score }: { score: string }) => {
 const FoodDetailSheet = ({ food, onClose, onAdd, mode = 'add' }: FoodDetailSheetProps) => {
   const [quantity, setQuantity] = useState(food.quantity);
   const [insulinDose, setInsulinDose] = useState(food.insulinDose || 0);
-  const [doseTiming, setDoseTiming] = useState<DoseTiming | null>(null);
-  const [injectionZone, setInjectionZone] = useState<BodyZone | null>(null);
-  const [injectionSide, setInjectionSide] = useState<BodySide | null>(null);
   const [note, setNote] = useState(food.note || '');
   const [expanded, setExpanded] = useState(false);
   const [quantityUncertain, setQuantityUncertain] = useState(food.quantityUncertain || false);
-
   const scale = quantity / food.quantity;
   const scaled = (val: number) => Math.round(val * scale * 10) / 10;
 
@@ -47,15 +41,14 @@ const FoodDetailSheet = ({ food, onClose, onAdd, mode = 'add' }: FoodDetailSheet
       fiber: food.fiber ? scaled(food.fiber) : undefined,
       sodium: food.sodium ? scaled(food.sodium) : undefined,
       insulinDose: insulinDose || undefined,
-      doseTiming: doseTiming || undefined,
-      injectionZone: injectionZone || undefined,
-      injectionSide: injectionSide || undefined,
       note: note || undefined,
       quantityUncertain,
+      carbsUncertain: food.carbsUncertain,
+      isCustom: food.isCustom,
       timestamp: new Date().toLocaleTimeString('fr', { hour: '2-digit', minute: '2-digit', hour12: false }),
     };
     onAdd(entry);
-    toast.success(`${food.name} ajouté au repas`);
+    toast.success(mode === 'edit' ? `${food.name} mis à jour` : `${food.name} ajouté au repas`);
   };
 
   return (
@@ -79,7 +72,12 @@ const FoodDetailSheet = ({ food, onClose, onAdd, mode = 'add' }: FoodDetailSheet
       <div className="p-4 space-y-4">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-xl font-satoshi-bold tracking-tight">{food.name}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-satoshi-bold tracking-tight">{food.name}</h1>
+              {food.isCustom && (
+                <span className="px-2 py-0.5 rounded text-[11px] font-satoshi-bold bg-primary/10 text-primary">Perso</span>
+              )}
+            </div>
             {food.brand && <p className="text-sm text-muted-foreground">{food.brand}</p>}
           </div>
           {food.nutriscore && <NutriscoreBadge score={food.nutriscore} />}
@@ -130,8 +128,13 @@ const FoodDetailSheet = ({ food, onClose, onAdd, mode = 'add' }: FoodDetailSheet
           <div className="text-center pb-3 border-b border-border">
             <p className="text-xs text-muted-foreground mb-1">Glucides</p>
             <p className="text-3xl font-satoshi-black tabular-nums text-accent-good">
-              {scaled(food.carbs)}<span className="text-lg ml-0.5">g</span>
+              {food.carbsUncertain && <span className="text-accent-low">≈</span>}{scaled(food.carbs)}<span className="text-lg ml-0.5">g</span>
             </p>
+            {food.carbsUncertain && (
+              <p className="text-xs text-accent-low flex items-center justify-center gap-1 mt-1">
+                <AlertTriangle size={12} /> Valeur approximative
+              </p>
+            )}
             <p className="text-xs text-muted-foreground mt-1">dont sucres : {scaled(food.sugars)}g</p>
           </div>
           <div className="grid grid-cols-3 gap-3 text-center">
@@ -184,18 +187,6 @@ const FoodDetailSheet = ({ food, onClose, onAdd, mode = 'add' }: FoodDetailSheet
           />
         </div>
 
-        {insulinDose > 0 && (
-          <>
-            <DoseTimingSelector value={doseTiming} onChange={setDoseTiming} />
-            <InjectionSiteSelector
-              zone={injectionZone}
-              side={injectionSide}
-              onChangeZone={setInjectionZone}
-              onChangeSide={setInjectionSide}
-            />
-          </>
-        )}
-
         {/* Note */}
         <div className="space-y-2">
           <label className="text-sm font-satoshi-medium text-muted-foreground">Note</label>
@@ -208,12 +199,12 @@ const FoodDetailSheet = ({ food, onClose, onAdd, mode = 'add' }: FoodDetailSheet
           />
         </div>
 
-        {mode === 'add' && (
+        {(mode === 'add' || mode === 'edit') && (
           <button
             onClick={handleAdd}
             className="w-full h-12 bg-primary text-primary-foreground rounded-lg font-satoshi-bold text-sm transition-all duration-150 hover:brightness-110 active:scale-[0.98]"
           >
-            Ajouter au repas
+            {mode === 'edit' ? 'Mettre à jour' : 'Ajouter au repas'}
           </button>
         )}
 

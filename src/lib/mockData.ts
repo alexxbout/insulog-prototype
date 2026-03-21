@@ -70,8 +70,29 @@ export interface SportSession {
   glucoseCurve: { time: number; value: number }[];
 }
 
+// ── User Profile ─────────────────────────────────────────────
+export interface UserProfile {
+  firstName: string;
+  weightKg: number;
+  rapidInsulinType: string;
+  longInsulinType: string;
+  diaHours: number;      // Duration of Insulin Action (3–6h)
+  carbRatio: number;     // g of carbs per 1 unit of rapid insulin
+  todayContext: string[]; // ['stress', 'illness', 'alcohol', 'cycle', 'sleep']
+}
+
+export const mockUserProfile: UserProfile = {
+  firstName: 'Alexandre',
+  weightKg: 75,
+  rapidInsulinType: 'Novorapid',
+  longInsulinType: 'Lantus',
+  diaHours: 4,
+  carbRatio: 10,
+  todayContext: [],
+};
+
 // Insulin ratio & sport impact data
-export const usualCarbRatio = 10; // 1 unit of insulin per 10g of carbs
+export const usualCarbRatio = 10; // 1 unit of insulin per 10g of carbs (initial default)
 
 export interface SportInsulinImpact {
   sportType: string;
@@ -299,7 +320,7 @@ export const insulinLogs: InsulinLog[] = [
  * Returns the total IOB in units from all rapid insulin doses in the last DIA hours.
  */
 export function calculateIOB(atDate: Date = mockNow()): { totalIOB: number; contributions: { dose: number; timestamp: string; remaining: number }[] } {
-  const DIA_MINUTES = 240; // 4 hours duration of insulin action
+  const DIA_MINUTES = mockUserProfile.diaHours * 60; // from user profile (default 4h)
   const contributions: { dose: number; timestamp: string; remaining: number }[] = [];
   let totalIOB = 0;
 

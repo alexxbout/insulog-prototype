@@ -9,6 +9,7 @@ import MealDashboard from "@/pages/MealDashboard";
 import MedicationDashboard from "@/pages/MedicationDashboard";
 import NightlyDetail from "@/pages/NightlyDetail";
 import NotFound from "@/pages/NotFound";
+import ProfilePage from "@/pages/ProfilePage";
 import SportDashboard from "@/pages/SportDashboard";
 import SportDetail from "@/pages/SportDetail";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/insights/sport" element={<SportDetail />} />
             <Route path="/insights/nightly" element={<NightlyDetail />} />
             <Route path="/insights/basal" element={<BasalDetail />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AppShell>

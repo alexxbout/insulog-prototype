@@ -292,6 +292,21 @@ export const basalWindows = [
 
 // ── Insulin log (rapid + long-acting) ──────────────────────────────
 
+export type CapillaryReason = 'feeling' | 'calibration' | 'driving' | 'other';
+
+export interface CapillaryGlucose {
+  id: string;
+  value: number;          // mg/dL
+  timestamp: string;      // "YYYY-MM-DD HH:mm"
+  reason: CapillaryReason;
+}
+
+export const capillaryReadings: CapillaryGlucose[] = [
+  { id: 'cg1', value: 72, timestamp: '2026-03-15 11:30', reason: 'feeling' },
+  { id: 'cg2', value: 145, timestamp: '2026-03-14 08:15', reason: 'calibration' },
+  { id: 'cg3', value: 95, timestamp: '2026-03-13 17:00', reason: 'driving' },
+];
+
 export interface InsulinLog {
   id: string;
   type: 'rapid' | 'long';

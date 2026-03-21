@@ -1,7 +1,7 @@
 import InjectionSiteSelector, { type BodySide, type BodyZone } from '@/components/InjectionSiteSelector';
-import { insulinLogs, type InsulinLog } from '@/lib/mockData';
+import { capillaryReadings, insulinLogs, type CapillaryGlucose, type InsulinLog } from '@/lib/mockData';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Clock, Plus, Syringe } from 'lucide-react';
+import { ArrowLeft, Clock, Droplets, Plus, Syringe } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -267,28 +267,180 @@ const CorrectionInsulinForm = ({ onClose, onSave }: CorrectionInsulinFormProps) 
   );
 };
 
+// ── Capillary glucose form (overlay) ──────────────────────────────
+
+const capillaryReasonLabels: Record<CapillaryReason, string> = {
+  feeling: 'Vérification ressenti',
+  calibration: 'Calibration',
+  driving: 'Avant conduite',
+  other: 'Autre',
+};
+
+interface CapillaryGlucoseFormProps {
+  onClose: () => void;
+  onSave: (reading: CapillaryGlucose) => void;
+}
+
+const CapillaryGlucoseForm = ({ onClose, onSave }: CapillaryGlucoseFormProps) => {
+  const [value, setValue] = useState(100);
+  const [time, setTime] = useState(() => {
+    const now = new Date();
+    return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  });
+  const [reason, setReason] = useState<CapillaryReason>('feeling');
+
+  const handleSave = () => {
+    if (value <= 0) return;
+    const today = new Date().toISOString().split('T')[0];
+    onSave({
+      id: `cg-${Date.now()}`,
+      value,
+      timestamp: `${today} ${time}`,
+      reason,
+    });
+    toast.success('Glycémie capillaire enregistrée');
+    onClose();
+  };
+
+  const glucoseColor = value < 70 ? 'text-accent-low' : value > 180 ? 'text-accent-high' : 'text-accent-good';
+
+  return (
+    <motion.div
+      initial={{ y: '100%' }}
+      animate={{ y: 0 }}
+      exit={{ y: '100%' }}
+      transition={{ duration: 0.25, ease: [0.3, 0, 0.5, 1] }}
+      className="absolute inset-0 z-50 bg-background flex flex-col"
+    >
+      <div className="flex items-center gap-3 px-4 pt-4 pb-2 border-b border-border">
+        <button onClick={onClose} className="p-2 rounded-lg hover:bg-muted transition-colors">
+          <ArrowLeft size={20} className="text-muted-foreground" />
+        </button>
+        <h2 className="text-lg font-satoshi-bold flex-1">Glycémie capillaire</h2>
+        <button
+          onClick={handleSave}
+          disabled={value <= 0}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-satoshi-bold transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
+        >
+          Enregistrer
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
+        {/* Value */}
+        <div>
+          <p className="text-sm font-satoshi-bold text-foreground mb-3">Valeur (mg/dL)</p>
+          <div className="flex items-center gap-3 justify-center p-3 bg-card rounded-xl border border-border">
+            <button
+              onClick={() => setValue(Math.max(20, value - 5))}
+              className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-lg font-satoshi-bold transition-all active:scale-95"
+            >
+              −
+            </button>
+            <div className="text-center min-w-[80px]">
+              <input
+                type="number"
+                value={value}
+                onChange={e => setValue(Math.max(0, parseInt(e.target.value) || 0))}
+                step={1}
+                className={`w-20 text-center text-3xl font-satoshi-black tabular-nums bg-transparent outline-none ${glucoseColor}`}
+              />
+              <p className="text-xs text-muted-foreground">mg/dL</p>
+            </div>
+            <button
+              onClick={() => setValue(value + 5)}
+              className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-lg font-satoshi-bold transition-all active:scale-95"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        {/* Time */}
+        <div>
+          <p className="text-sm font-satoshi-bold text-foreground mb-3">Heure de mesure</p>
+          <input
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="w-full h-12 bg-card border border-border rounded-xl px-4 text-sm font-satoshi-medium text-foreground focus:outline-none focus:border-primary/50 transition-colors"
+          />
+        </div>
+
+        {/* Reason */}
+        <div>
+          <p className="text-sm font-satoshi-bold text-foreground mb-3">Raison</p>
+          <div className="flex flex-wrap gap-2">
+            {(Object.entries(capillaryReasonLabels) as [CapillaryReason, string][]).map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setReason(key)}
+                className={`px-3 py-2 rounded-xl text-sm font-satoshi-medium transition-all border ${
+                  reason === key
+                    ? 'bg-primary/10 border-primary/40 text-primary'
+                    : 'bg-card border-border text-muted-foreground'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <button
+          onClick={handleSave}
+          disabled={value <= 0}
+          className="w-full h-12 bg-primary text-primary-foreground rounded-lg font-satoshi-bold text-sm transition-all duration-150 hover:brightness-110 active:scale-[0.98] disabled:opacity-50"
+        >
+          Enregistrer la mesure
+        </button>
+      </div>
+    </motion.div>
+  );
+};
+
 // ── Main page ──────────────────────────────────────────────────────
 
 const MedicationDashboard = () => {
   const [showBasalForm, setShowBasalForm] = useState(false);
   const [showCorrectionForm, setShowCorrectionForm] = useState(false);
+  const [showCapillaryForm, setShowCapillaryForm] = useState(false);
   const [extraLogs, setExtraLogs] = useState<InsulinLog[]>([]);
+  const [extraCapillary, setExtraCapillary] = useState<CapillaryGlucose[]>([]);
 
   const allLogs = useMemo(() => {
     return [...insulinLogs, ...extraLogs]
       .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
   }, [extraLogs]);
 
+  const allCapillary = useMemo(() => {
+    return [...capillaryReadings, ...extraCapillary]
+      .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+  }, [extraCapillary]);
+
+  // Unified timeline entries
+  type TimelineEntry =
+    | { kind: 'insulin'; data: InsulinLog }
+    | { kind: 'capillary'; data: CapillaryGlucose };
+
+  const timeline: TimelineEntry[] = useMemo(() => {
+    const entries: TimelineEntry[] = [
+      ...allLogs.map(l => ({ kind: 'insulin' as const, data: l })),
+      ...allCapillary.map(c => ({ kind: 'capillary' as const, data: c })),
+    ];
+    return entries.sort((a, b) => b.data.timestamp.localeCompare(a.data.timestamp));
+  }, [allLogs, allCapillary]);
+
   // Group by date
-  const groupedLogs = useMemo(() => {
-    const groups: Record<string, InsulinLog[]> = {};
-    for (const log of allLogs) {
-      const date = log.timestamp.split(' ')[0];
+  const groupedTimeline = useMemo(() => {
+    const groups: Record<string, TimelineEntry[]> = {};
+    for (const entry of timeline) {
+      const date = entry.data.timestamp.split(' ')[0];
       if (!groups[date]) groups[date] = [];
-      groups[date].push(log);
+      groups[date].push(entry);
     }
     return Object.entries(groups).sort(([a], [b]) => b.localeCompare(a));
-  }, [allLogs]);
+  }, [timeline]);
 
   const formatDate = (dateStr: string) => {
     const today = new Date().toISOString().split('T')[0];
@@ -314,6 +466,10 @@ const MedicationDashboard = () => {
 
   const handleSaveBasal = (log: InsulinLog) => {
     setExtraLogs(prev => [...prev, log]);
+  };
+
+  const handleSaveCapillary = (reading: CapillaryGlucose) => {
+    setExtraCapillary(prev => [...prev, reading]);
   };
 
   return (
@@ -347,13 +503,40 @@ const MedicationDashboard = () => {
 
       {/* Log list */}
       <div className="flex-1 overflow-y-auto px-4 pb-24 space-y-4">
-        {groupedLogs.map(([date, logs]) => (
+        {groupedTimeline.map(([date, entries]) => (
           <div key={date}>
             <p className="text-xs font-satoshi-bold text-muted-foreground tracking-wide mb-2 capitalize">
               {formatDate(date)}
             </p>
             <div className="space-y-2">
-              {logs.map(log => (
+              {entries.map(entry => {
+                if (entry.kind === 'capillary') {
+                  const cg = entry.data;
+                  const cgColor = cg.value < 70 ? 'text-accent-low' : cg.value > 180 ? 'text-accent-high' : 'text-accent-good';
+                  const cgBg = cg.value < 70 ? 'bg-accent-low/10' : cg.value > 180 ? 'bg-accent-high/10' : 'bg-accent-good/10';
+                  return (
+                    <div key={cg.id} className="flex items-center gap-3 p-3 bg-card rounded-xl border border-border">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${cgBg}`}>
+                        <Droplets size={20} className={cgColor} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-satoshi-bold text-foreground">Glycémie capillaire</p>
+                          <span className={`px-1.5 py-0.5 rounded text-[10px] font-satoshi-bold ${cgBg} ${cgColor}`}>
+                            {cg.value} mg/dL
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <span>{cg.timestamp.split(' ')[1]}</span>
+                          <span>· {capillaryReasonLabels[cg.reason]}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                const log = entry.data as InsulinLog;
+                return (
                 <div key={log.id} className="flex items-center gap-3 p-3 bg-card rounded-xl border border-border">
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0 ${
                     log.type === 'long' ? 'bg-primary/10' : 'bg-accent-good/10'
@@ -382,7 +565,8 @@ const MedicationDashboard = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))}
@@ -404,6 +588,15 @@ const MedicationDashboard = () => {
           <Plus size={18} />
           <span className="text-sm font-satoshi-medium">Enregistrer une correction rapide</span>
         </button>
+
+        {/* Add capillary glucose button */}
+        <button
+          onClick={() => setShowCapillaryForm(true)}
+          className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border-2 border-dashed border-border text-muted-foreground hover:border-accent-good/50 hover:text-foreground transition-colors"
+        >
+          <Droplets size={18} />
+          <span className="text-sm font-satoshi-medium">Enregistrer une glycémie capillaire</span>
+        </button>
       </div>
 
       {showBasalForm && (
@@ -416,6 +609,12 @@ const MedicationDashboard = () => {
         <CorrectionInsulinForm
           onClose={() => setShowCorrectionForm(false)}
           onSave={handleSaveBasal}
+        />
+      )}
+      {showCapillaryForm && (
+        <CapillaryGlucoseForm
+          onClose={() => setShowCapillaryForm(false)}
+          onSave={handleSaveCapillary}
         />
       )}
     </div>

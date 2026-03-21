@@ -32,6 +32,7 @@ export interface Meal {
   totalCarbs: number;
   totalInsulin: number;
   correctionDose?: number;
+  reducedDoseForActivity?: boolean;
   injectionZone?: string;
   injectionSide?: string;
   doseTiming?: 'now' | '10min' | '20min';

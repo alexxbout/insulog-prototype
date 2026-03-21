@@ -29,6 +29,7 @@ const MealBuilder = ({ onClose, onSaveMeal, customFoods, onSaveCustomFood }: Mea
   const [injectionZone, setInjectionZone] = useState<BodyZone | null>(null);
   const [injectionSide, setInjectionSide] = useState<BodySide | null>(null);
   const [correctionDose, setCorrectionDose] = useState(0);
+  const [reducedDoseForActivity, setReducedDoseForActivity] = useState(false);
 
   const totalCarbs = entries.reduce((s, e) => s + e.carbs, 0);
   const totalInsulin = entries.reduce((s, e) => s + (e.insulinDose || 0), 0);
@@ -58,8 +59,8 @@ const MealBuilder = ({ onClose, onSaveMeal, customFoods, onSaveCustomFood }: Mea
   // Dose warning logic
   const stats = mealLabel ? getMealLabelStats(mealLabel) : null;
   const expectedDose = totalCarbs > 0 ? Math.round(totalCarbs / usualCarbRatio * 10) / 10 : 0;
-  const hasDoseWarning = entries.length > 0 && totalInsulin > 0 && expectedDose > 0 && Math.abs(totalInsulin - expectedDose) / expectedDose > 0.25;
   const doseDirection = totalInsulin > expectedDose ? 'high' : 'low';
+  const hasDoseWarning = entries.length > 0 && totalInsulin > 0 && expectedDose > 0 && Math.abs(totalInsulin - expectedDose) / expectedDose > 0.25 && !(reducedDoseForActivity && doseDirection === 'low');
 
   // IOB (Insulin on Board) calculation
   const iob = calculateIOB();
@@ -76,6 +77,7 @@ const MealBuilder = ({ onClose, onSaveMeal, customFoods, onSaveCustomFood }: Mea
       totalCarbs,
       totalInsulin,
       correctionDose: correctionDose || undefined,
+      reducedDoseForActivity: reducedDoseForActivity || undefined,
       injectionZone: injectionZone || undefined,
       injectionSide: injectionSide || undefined,
       doseTiming: doseTiming || undefined,
@@ -283,6 +285,34 @@ const MealBuilder = ({ onClose, onSaveMeal, customFoods, onSaveCustomFood }: Mea
                 </button>
               </div>
             </div>
+
+            {/* Reduced dose flag */}
+            <button
+              type="button"
+              onClick={() => setReducedDoseForActivity(v => !v)}
+              className={`w-full flex items-center gap-3 p-4 rounded-xl border transition-all ${
+                reducedDoseForActivity
+                  ? 'bg-primary/10 border-primary/40'
+                  : 'bg-card border-border'
+              }`}
+            >
+              <div className={`w-5 h-5 rounded flex items-center justify-center shrink-0 border-2 transition-all ${
+                reducedDoseForActivity
+                  ? 'bg-primary border-primary'
+                  : 'border-border'
+              }`}>
+                {reducedDoseForActivity && (
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                    <path d="M2 6l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </div>
+              <p className={`text-sm font-satoshi-medium text-left ${
+                reducedDoseForActivity ? 'text-primary' : 'text-muted-foreground'
+              }`}>
+                Dose intentionnellement réduite (activité prévue)
+              </p>
+            </button>
 
             {/* Timing & injection site */}
             <DoseTimingSelector value={doseTiming} onChange={setDoseTiming} />
